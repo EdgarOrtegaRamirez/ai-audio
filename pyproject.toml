@@ -1,0 +1,69 @@
+[project]
+name = "ai-audio"
+version = "0.1.0"
+description = "Text-to-speech and speech-to-text from your terminal"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "Edgar Ortega", email = "edgar@example.com"},
+]
+keywords = ["tts", "stt", "speech", "audio", "whisper", "edge-tts"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Multimedia :: Sound/Audio :: Speech",
+]
+dependencies = [
+    "edge-tts>=6.1.0",
+    "click>=8.0",
+    "rich>=13.0",
+    "aiofiles>=23.0",
+]
+
+[project.optional-dependencies]
+transcribe = [
+    "openai>=1.0",
+    "pydub>=0.25",
+]
+all = [
+    "openai>=1.0",
+    "pydub>=0.25",
+]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "pytest-cov>=4.0",
+    "ruff>=0.15.0",
+]
+
+[project.scripts]
+ai-audio = "ai_audio.cli:main"
+"ai-audio-speak" = "ai_audio.cli:speak_cmd"
+"ai-audio-transcribe" = "ai_audio.cli:transcribe_cmd"
+
+[project.urls]
+Homepage = "https://github.com/EdgarOrtegaRamirez/ai-audio"
+Repository = "https://github.com/EdgarOrtegaRamirez/ai-audio"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
