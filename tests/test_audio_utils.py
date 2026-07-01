@@ -1,10 +1,6 @@
 """Tests for audio utility functions."""
 
-import subprocess
-from pathlib import Path
 from unittest.mock import MagicMock, patch
-
-import pytest
 
 from ai_audio.audio_utils import (
     AudioInfo,
@@ -17,39 +13,81 @@ class TestAudioInfo:
     """Test AudioInfo dataclass."""
 
     def test_duration_human_seconds(self):
-        info = AudioInfo(path="test.mp3", format="mp3", duration_seconds=45.0,
-                         sample_rate=44100, channels=2, bitrate=128000,
-                         codec="mp3", file_size_bytes=1000)
+        info = AudioInfo(
+            path="test.mp3",
+            format="mp3",
+            duration_seconds=45.0,
+            sample_rate=44100,
+            channels=2,
+            bitrate=128000,
+            codec="mp3",
+            file_size_bytes=1000,
+        )
         assert info.duration_human == "45s"
 
     def test_duration_human_minutes(self):
-        info = AudioInfo(path="test.mp3", format="mp3", duration_seconds=125.0,
-                         sample_rate=44100, channels=2, bitrate=128000,
-                         codec="mp3", file_size_bytes=1000)
+        info = AudioInfo(
+            path="test.mp3",
+            format="mp3",
+            duration_seconds=125.0,
+            sample_rate=44100,
+            channels=2,
+            bitrate=128000,
+            codec="mp3",
+            file_size_bytes=1000,
+        )
         assert info.duration_human == "2m 5s"
 
     def test_duration_human_hours(self):
-        info = AudioInfo(path="test.mp3", format="mp3", duration_seconds=3661.0,
-                         sample_rate=44100, channels=2, bitrate=128000,
-                         codec="mp3", file_size_bytes=1000)
+        info = AudioInfo(
+            path="test.mp3",
+            format="mp3",
+            duration_seconds=3661.0,
+            sample_rate=44100,
+            channels=2,
+            bitrate=128000,
+            codec="mp3",
+            file_size_bytes=1000,
+        )
         assert info.duration_human == "1h 1m 1s"
 
     def test_file_size_human_bytes(self):
-        info = AudioInfo(path="test.mp3", format="mp3", duration_seconds=0,
-                         sample_rate=0, channels=0, bitrate=0,
-                         codec="mp3", file_size_bytes=500)
+        info = AudioInfo(
+            path="test.mp3",
+            format="mp3",
+            duration_seconds=0,
+            sample_rate=0,
+            channels=0,
+            bitrate=0,
+            codec="mp3",
+            file_size_bytes=500,
+        )
         assert info.file_size_human == "500.0B"
 
     def test_file_size_human_kb(self):
-        info = AudioInfo(path="test.mp3", format="mp3", duration_seconds=0,
-                         sample_rate=0, channels=0, bitrate=0,
-                         codec="mp3", file_size_bytes=1500)
+        info = AudioInfo(
+            path="test.mp3",
+            format="mp3",
+            duration_seconds=0,
+            sample_rate=0,
+            channels=0,
+            bitrate=0,
+            codec="mp3",
+            file_size_bytes=1500,
+        )
         assert "KB" in info.file_size_human
 
     def test_file_size_human_mb(self):
-        info = AudioInfo(path="test.mp3", format="mp3", duration_seconds=0,
-                         sample_rate=0, channels=0, bitrate=0,
-                         codec="mp3", file_size_bytes=5 * 1024 * 1024)
+        info = AudioInfo(
+            path="test.mp3",
+            format="mp3",
+            duration_seconds=0,
+            sample_rate=0,
+            channels=0,
+            bitrate=0,
+            codec="mp3",
+            file_size_bytes=5 * 1024 * 1024,
+        )
         assert "MB" in info.file_size_human
 
 
@@ -91,9 +129,14 @@ class TestSplitAudioSync:
     def test_short_file_no_split(self, mock_info, tmp_path):
         """Short file should not be split."""
         mock_info.return_value = AudioInfo(
-            path="short.mp3", format="mp3", duration_seconds=10.0,
-            sample_rate=44100, channels=2, bitrate=128000,
-            codec="mp3", file_size_bytes=1000,
+            path="short.mp3",
+            format="mp3",
+            duration_seconds=10.0,
+            sample_rate=44100,
+            channels=2,
+            bitrate=128000,
+            codec="mp3",
+            file_size_bytes=1000,
         )
         audio = tmp_path / "short.mp3"
         audio.write_bytes(b"fake audio data")
@@ -106,9 +149,14 @@ class TestSplitAudioSync:
     def test_long_file_split(self, mock_run, mock_info, tmp_path):
         """Long file should be split into chunks."""
         mock_info.return_value = AudioInfo(
-            path="test.mp3", format="mp3", duration_seconds=700.0,
-            sample_rate=44100, channels=2, bitrate=128000,
-            codec="mp3", file_size_bytes=10000000,
+            path="test.mp3",
+            format="mp3",
+            duration_seconds=700.0,
+            sample_rate=44100,
+            channels=2,
+            bitrate=128000,
+            codec="mp3",
+            file_size_bytes=10000000,
         )
         mock_run.return_value = MagicMock(returncode=0)
 

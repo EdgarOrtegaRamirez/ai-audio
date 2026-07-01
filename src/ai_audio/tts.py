@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 import edge_tts
@@ -15,6 +14,7 @@ from .audio_utils import convert_audio
 @dataclass
 class TTSConfig:
     """Configuration for text-to-speech synthesis."""
+
     voice: str = "en-US-AriaNeural"
     rate: str = "+0%"
     pitch: str = "+0Hz"
@@ -31,54 +31,77 @@ class TTSConfig:
 # Popular voices by language
 VOICE_PRESETS: dict[str, list[str]] = {
     "en": [
-        "en-US-AriaNeural", "en-US-GuyNeural", "en-US-JennyNeural",
-        "en-US-AndrewNeural", "en-US-BrianNeural", "en-US-EmmaNeural",
-        "en-GB-SoniaNeural", "en-GB-RyanNeural",
-        "en-AU-NatashaNeural", "en-AU-WilliamNeural",
+        "en-US-AriaNeural",
+        "en-US-GuyNeural",
+        "en-US-JennyNeural",
+        "en-US-AndrewNeural",
+        "en-US-BrianNeural",
+        "en-US-EmmaNeural",
+        "en-GB-SoniaNeural",
+        "en-GB-RyanNeural",
+        "en-AU-NatashaNeural",
+        "en-AU-WilliamNeural",
     ],
     "es": [
-        "es-ES-ElviraNeural", "es-ES-AlvaroNeural",
-        "es-MX-DaliaNeural", "es-MX-JorgeNeural",
-        "es-CO-SalomeNeural", "es-CO-GonzaloNeural",
+        "es-ES-ElviraNeural",
+        "es-ES-AlvaroNeural",
+        "es-MX-DaliaNeural",
+        "es-MX-JorgeNeural",
+        "es-CO-SalomeNeural",
+        "es-CO-GonzaloNeural",
     ],
     "fr": [
-        "fr-FR-DeniseNeural", "fr-FR-HenriNeural",
-        "fr-CA-SylvieNeural", "fr-CA-JeanNeural",
+        "fr-FR-DeniseNeural",
+        "fr-FR-HenriNeural",
+        "fr-CA-SylvieNeural",
+        "fr-CA-JeanNeural",
     ],
     "de": [
-        "de-DE-KatjaNeural", "de-DE-ConradNeural",
+        "de-DE-KatjaNeural",
+        "de-DE-ConradNeural",
     ],
     "pt": [
-        "pt-BR-FranciscaNeural", "pt-BR-AntonioNeural",
-        "pt-PT-RaquelNeural", "pt-PT-DuarteNeural",
+        "pt-BR-FranciscaNeural",
+        "pt-BR-AntonioNeural",
+        "pt-PT-RaquelNeural",
+        "pt-PT-DuarteNeural",
     ],
     "ja": [
-        "ja-JP-NanamiNeural", "ja-JP-KeitaNeural",
+        "ja-JP-NanamiNeural",
+        "ja-JP-KeitaNeural",
     ],
     "ko": [
-        "ko-KR-SunHiNeural", "ko-KR-InJoonNeural",
+        "ko-KR-SunHiNeural",
+        "ko-KR-InJoonNeural",
     ],
     "zh": [
-        "zh-CN-XiaoxiaoNeural", "zh-CN-YunxiNeural",
+        "zh-CN-XiaoxiaoNeural",
+        "zh-CN-YunxiNeural",
         "zh-CN-YunjianNeural",
     ],
     "hi": [
-        "hi-IN-SwaraNeural", "hi-IN-MadhurNeural",
+        "hi-IN-SwaraNeural",
+        "hi-IN-MadhurNeural",
     ],
     "ar": [
-        "ar-SA-ZariyahNeural", "ar-SA-HamedNeural",
+        "ar-SA-ZariyahNeural",
+        "ar-SA-HamedNeural",
     ],
     "it": [
-        "it-IT-ElsaNeural", "it-IT-DiegoNeural",
+        "it-IT-ElsaNeural",
+        "it-IT-DiegoNeural",
     ],
     "ru": [
-        "ru-RU-SvetlanaNeural", "ru-RU-DmitryNeural",
+        "ru-RU-SvetlanaNeural",
+        "ru-RU-DmitryNeural",
     ],
     "nl": [
-        "nl-NL-ColetteNeural", "nl-NL-MaartenNeural",
+        "nl-NL-ColetteNeural",
+        "nl-NL-MaartenNeural",
     ],
     "pl": [
-        "pl-PL-AgnieszkaNeural", "pl-PL-MarekNeural",
+        "pl-PL-AgnieszkaNeural",
+        "pl-PL-MarekNeural",
     ],
 }
 
@@ -145,7 +168,7 @@ def chunk_text(text: str, max_chars: int = 4000) -> list[str]:
             segment.rfind(" - "),
         )
         if split_pos > max_chars * 0.3:
-            chunks.append(remaining[:split_pos + 1].strip())
+            chunks.append(remaining[: split_pos + 1].strip())
             remaining = remaining[split_pos + 1 :].strip()
             continue
 
@@ -233,14 +256,22 @@ async def synthesize(
                 f.write(f"file '{cp}'\n")
 
         cmd = [
-            "ffmpeg", "-y",
-            "-f", "concat", "-safe", "0",
-            "-i", str(concat_file),
-            "-c", "copy",
+            "ffmpeg",
+            "-y",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-i",
+            str(concat_file),
+            "-c",
+            "copy",
             str(output_path),
         ]
         proc = await asyncio.create_subprocess_exec(
-            *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
         )
         await proc.communicate()
         if proc.returncode != 0:

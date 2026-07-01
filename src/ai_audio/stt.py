@@ -4,12 +4,10 @@ from __future__ import annotations
 
 import asyncio
 import os
-import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .audio_utils import get_audio_info, split_audio_sync, convert_audio
-
+from .audio_utils import convert_audio, get_audio_info, split_audio_sync
 
 # Whisper API limit: 25MB per request
 WHISPER_MAX_FILE_SIZE_MB = 24
@@ -20,6 +18,7 @@ WHISPER_CHUNK_DURATION = 600.0  # 10 minutes per chunk
 @dataclass
 class TranscribeConfig:
     """Configuration for speech-to-text transcription."""
+
     model: str = "whisper-1"
     language: str | None = None  # Auto-detect if None
     response_format: str = "verbose_json"  # json, verbose_json, text, srt, vtt
@@ -39,6 +38,7 @@ class TranscribeConfig:
 @dataclass
 class TranscribeResult:
     """Result of a transcription."""
+
     text: str
     language: str
     duration: float
@@ -101,17 +101,14 @@ def _get_openai_client(config: TranscribeConfig):
     """Create OpenAI client with proper API key and base URL."""
     try:
         from openai import OpenAI
-    except ImportError:
+    except ImportError as e:
         raise ImportError(
-            "openai package required for transcription. "
-            "Install with: pip install 'ai-audio[transcribe]'"
-        )
+            "openai package required for transcription. Install with: pip install 'ai-audio[transcribe]'"
+        ) from e
 
     api_key = config.api_key or os.environ.get("OPENAI_API_KEY")
     if not api_key:
-        raise ValueError(
-            "OpenAI API key required. Set OPENAI_API_KEY env var or pass --api-key"
-        )
+        raise ValueError("OpenAI API key required. Set OPENAI_API_KEY env var or pass --api-key")
 
     kwargs = {"api_key": api_key}
     if config.base_url:
@@ -226,6 +223,7 @@ def transcribe_sync(
         if filepath.suffix.lower() not in (".mp3", ".wav", ".m4a", ".flac", ".ogg", ".webm"):
             work_path = filepath.with_suffix(".mp3")
             import asyncio
+
             asyncio.run(convert_audio(filepath, work_path, output_format="mp3"))
 
         result = _transcribe_chunk_sync(client, work_path, config)
@@ -241,12 +239,13 @@ def transcribe_sync(
     chunks = split_audio_sync(filepath, config.chunk_duration)
     chunk_results = []
 
-    for i, chunk_path in enumerate(chunks):
+    for _i, chunk_path in enumerate(chunks):
         # Ensure chunk is in a compatible format
         work_chunk = chunk_path
         if chunk_path.suffix.lower() not in (".mp3", ".wav", ".m4a", ".flac", ".ogg", ".webm"):
             work_chunk = chunk_path.with_suffix(".mp3")
             import asyncio
+
             asyncio.run(convert_audio(chunk_path, work_chunk, output_format="mp3"))
 
         result = _transcribe_chunk_sync(client, work_chunk, config)

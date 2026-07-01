@@ -7,16 +7,14 @@ import sys
 from pathlib import Path
 
 import click
+from rich import box
 from rich.console import Console
 from rich.table import Table
-from rich.panel import Panel
-from rich.text import Text
-from rich import box
 
 from . import __version__
-from .tts import speak, list_voices, TTSConfig, VOICE_PRESETS
-from .stt import transcribe, TranscribeConfig, TranscribeResult
-from .audio_utils import get_audio_info, detect_audio_format
+from .audio_utils import get_audio_info
+from .stt import TranscribeConfig, TranscribeResult, transcribe
+from .tts import list_voices, speak
 
 console = Console()
 
@@ -29,6 +27,7 @@ def _run_async(coro):
         loop = None
     if loop and loop.is_running():
         import concurrent.futures
+
         with concurrent.futures.ThreadPoolExecutor() as pool:
             return pool.submit(asyncio.run, coro).result()
     return asyncio.run(coro)
@@ -84,7 +83,7 @@ def speak_cmd(text, voice, rate, pitch, volume, output, output_format, list_voic
     text_content = _read_stdin_or_text(text)
     if not text_content:
         console.print("[red]No text provided. Use 'ai audio speak --list-voices' to see available voices.[/red]")
-        raise SystemExit(1)
+        raise SystemExit(1) from None
 
     # Determine output path
     if output is None:
@@ -93,24 +92,30 @@ def speak_cmd(text, voice, rate, pitch, volume, output, output_format, list_voic
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     console.print(f"[dim]Synthesizing with voice [cyan]{voice}[/cyan]...[/dim]")
-    console.print(f"[dim]Text ({len(text_content)} chars): {text_content[:80]}{'...' if len(text_content) > 80 else ''}[/dim]")
+    console.print()
+    preview = text_content[:80] + ("..." if len(text_content) > 80 else "")
+    console.print(f"[dim]Text ({len(text_content)} chars): {preview}[/dim]")
 
     try:
-        result = _run_async(speak(
-            text=text_content,
-            voice=voice,
-            rate=rate,
-            pitch=pitch,
-            volume=volume,
-            output=str(output_path),
-            output_format=output_format,
-        ))
+        result = _run_async(
+            speak(
+                text=text_content,
+                voice=voice,
+                rate=rate,
+                pitch=pitch,
+                volume=volume,
+                output=str(output_path),
+                output_format=output_format,
+            )
+        )
         info = get_audio_info(result)
         console.print(f"\n[green]✓ Saved to {result}[/green]")
-        console.print(f"[dim]  Format: {info.format} | Duration: {info.duration_human} | Size: {info.file_size_human}[/dim]")
+        console.print(
+            f"[dim]  Format: {info.format} | Duration: {info.duration_human} | Size: {info.file_size_human}[/dim]"
+        )
     except Exception as e:
         console.print(f"[red]Error: {e}[/red]")
-        raise SystemExit(1)
+        raise SystemExit(1) from e
 
 
 def _show_voices(lang: str | None = None):
@@ -140,7 +145,13 @@ def _show_voices(lang: str | None = None):
 @click.option("-l", "--language", default=None, help="Language code (e.g. en, es, fr) — auto-detect if omitted")
 @click.option("-m", "--model", default="whisper-1", help="Whisper model to use")
 @click.option("-o", "--output", default=None, help="Output file (default: stdout)")
-@click.option("--format", "output_format", default="text", type=click.Choice(["text", "json", "srt", "vtt", "verbose"]), help="Output format")
+@click.option(
+    "--format",
+    "output_format",
+    default="text",
+    type=click.Choice(["text", "json", "srt", "vtt", "verbose"]),
+    help="Output format",
+)
 @click.option("--api-key", default=None, help="OpenAI API key (or set OPENAI_API_KEY)")
 @click.option("--base-url", default=None, help="Custom API base URL")
 @click.option("--prompt", default=None, help="Context prompt for better accuracy")
@@ -159,10 +170,11 @@ def transcribe_cmd(audio_file, language, model, output, output_format, api_key, 
     if audio_file == "-" or (audio_file is None and not sys.stdin.isatty()):
         # Save stdin to temp file
         import tempfile
+
         stdin_data = sys.stdin.buffer.read()
         if not stdin_data:
             console.print("[red]No audio data on stdin[/red]")
-            raise SystemExit(1)
+            raise SystemExit(1) from None
 
         with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp:
             tmp.write(stdin_data)
@@ -171,17 +183,20 @@ def transcribe_cmd(audio_file, language, model, output, output_format, api_key, 
 
     if audio_file is None:
         console.print("[red]No audio file specified. Provide a file path or pipe audio to stdin.[/red]")
-        raise SystemExit(1)
+        raise SystemExit(1) from None
 
     audio_path = Path(audio_file)
     if not audio_path.exists():
         console.print(f"[red]File not found: {audio_path}[/red]")
-        raise SystemExit(1)
+        raise SystemExit(1) from None
 
     # Show file info
     try:
         info = get_audio_info(audio_path)
-        console.print(f"[dim]Transcribing: {info.path} | Format: {info.format} | Duration: {info.duration_human} | Size: {info.file_size_human}[/dim]")
+        console.print(
+            f"[dim]Transcribing: {info.path} | Format: {info.format}"
+            f" | Duration: {info.duration_human} | Size: {info.file_size_human}[/dim]"
+        )
     except Exception:
         console.print(f"[dim]Transcribing: {audio_path}[/dim]")
 
@@ -200,10 +215,10 @@ def transcribe_cmd(audio_file, language, model, output, output_format, api_key, 
         _output_result(result, output_format, output)
     except ImportError as e:
         console.print(f"[red]{e}[/red]")
-        raise SystemExit(1)
+        raise SystemExit(1) from e
     except Exception as e:
         console.print(f"[red]Transcription error: {e}[/red]")
-        raise SystemExit(1)
+        raise SystemExit(1) from e
 
 
 def _output_result(result: TranscribeResult, fmt: str, output_file: str | None):
@@ -238,7 +253,10 @@ def _output_result(result: TranscribeResult, fmt: str, output_file: str | None):
         console.print(content)
 
     # Stats
-    console.print(f"\n[dim]Language: {result.language} | Duration: {result.duration:.1f}s | Segments: {len(result.segments)}[/dim]")
+    console.print(
+        f"\n[dim]Language: {result.language} | Duration: {result.duration:.1f}s"  # noqa: E501
+        f" | Segments: {len(result.segments)}[/dim]"
+    )
 
 
 # ─── VOICES ──────────────────────────────────────────────────────────
@@ -269,7 +287,7 @@ def info_cmd(audio_file):
         console.print(table)
     except FileNotFoundError as e:
         console.print(f"[red]{e}[/red]")
-        raise SystemExit(1)
+        raise SystemExit(1) from e
 
 
 # ─── FORMAT ───────────────────────────────────────────────────────────
@@ -286,7 +304,8 @@ def convert_cmd(input_file, output_file, output_format, normalize, sample_rate, 
 
     async def _convert():
         return await convert_audio(
-            input_file, output_file,
+            input_file,
+            output_file,
             output_format=output_format,
             sample_rate=sample_rate,
             bitrate=bitrate,
@@ -297,10 +316,12 @@ def convert_cmd(input_file, output_file, output_format, normalize, sample_rate, 
         result = _run_async(_convert())
         info = get_audio_info(result)
         console.print(f"[green]✓ Converted to {result}[/green]")
-        console.print(f"[dim]  Format: {info.format} | Duration: {info.duration_human} | Size: {info.file_size_human}[/dim]")
+        console.print(
+            f"[dim]  Format: {info.format} | Duration: {info.duration_human} | Size: {info.file_size_human}[/dim]"
+        )
     except Exception as e:
         console.print(f"[red]Conversion error: {e}[/red]")
-        raise SystemExit(1)
+        raise SystemExit(1) from e
 
 
 # ─── ALIASES ──────────────────────────────────────────────────────────

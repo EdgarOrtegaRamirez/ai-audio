@@ -5,7 +5,6 @@ from __future__ import annotations
 import asyncio
 import json
 import subprocess
-import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -13,6 +12,7 @@ from pathlib import Path
 @dataclass
 class AudioInfo:
     """Metadata about an audio file."""
+
     path: str
     format: str
     duration_seconds: float
@@ -49,9 +49,13 @@ def get_audio_info(filepath: str | Path) -> AudioInfo:
         raise FileNotFoundError(f"Audio file not found: {filepath}")
 
     cmd = [
-        "ffprobe", "-v", "quiet",
-        "-print_format", "json",
-        "-show_format", "-show_streams",
+        "ffprobe",
+        "-v",
+        "quiet",
+        "-print_format",
+        "json",
+        "-show_format",
+        "-show_streams",
         str(filepath),
     ]
     result = subprocess.run(cmd, capture_output=True, text=True, check=True)
@@ -101,7 +105,9 @@ async def convert_audio(
     cmd.append(str(output_path))
 
     proc = await asyncio.create_subprocess_exec(
-        *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+        *cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
     )
     stdout, stderr = await proc.communicate()
     if proc.returncode != 0:
@@ -127,20 +133,27 @@ async def extract_segment(
 
     duration = end - start
     cmd = [
-        "ffmpeg", "-y",
-        "-i", str(input_path),
-        "-ss", str(start),
-        "-t", str(duration),
-        "-c", "copy",
+        "ffmpeg",
+        "-y",
+        "-i",
+        str(input_path),
+        "-ss",
+        str(start),
+        "-t",
+        str(duration),
+        "-c",
+        "copy",
         str(output_path),
     ]
 
     proc = await asyncio.create_subprocess_exec(
-        *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+        *cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
     )
     await proc.communicate()
     if proc.returncode != 0:
-        raise RuntimeError(f"ffmpeg segment extraction failed")
+        raise RuntimeError("ffmpeg segment extraction failed")
     return output_path
 
 
@@ -160,11 +173,16 @@ def split_audio_sync(input_path: str | Path, chunk_duration: float = 300.0) -> l
         chunk_path = input_path.parent / f"{input_path.stem}_chunk_{idx:03d}{input_path.suffix}"
 
         cmd = [
-            "ffmpeg", "-y",
-            "-i", str(input_path),
-            "-ss", str(start),
-            "-t", str(end - start),
-            "-c", "copy",
+            "ffmpeg",
+            "-y",
+            "-i",
+            str(input_path),
+            "-ss",
+            str(start),
+            "-t",
+            str(end - start),
+            "-c",
+            "copy",
             str(chunk_path),
         ]
         subprocess.run(cmd, capture_output=True, check=True)
@@ -180,9 +198,16 @@ def detect_audio_format(filepath: str | Path) -> str:
     filepath = Path(filepath)
     ext = filepath.suffix.lower().lstrip(".")
     format_map = {
-        "mp3": "mp3", "wav": "wav", "ogg": "ogg", "flac": "flac",
-        "m4a": "m4a", "aac": "aac", "wma": "wma", "opus": "opus",
-        "webm": "webm", "mp4": "mp4",
+        "mp3": "mp3",
+        "wav": "wav",
+        "ogg": "ogg",
+        "flac": "flac",
+        "m4a": "m4a",
+        "aac": "aac",
+        "wma": "wma",
+        "opus": "opus",
+        "webm": "webm",
+        "mp4": "mp4",
     }
     if ext in format_map:
         return format_map[ext]

@@ -1,10 +1,5 @@
 """Tests for speech-to-text module."""
 
-from pathlib import Path
-from unittest.mock import MagicMock, patch
-
-import pytest
-
 from ai_audio.stt import (
     TranscribeConfig,
     TranscribeResult,
@@ -91,9 +86,7 @@ class TestTranscribeResult:
         assert "Hello" in vtt
 
     def test_empty_segments(self):
-        result = TranscribeResult(
-            text="", language="en", duration=0, segments=[]
-        )
+        result = TranscribeResult(text="", language="en", duration=0, segments=[])
         assert result.segments_text == ""
         assert result.to_srt() == ""
         assert "WEBVTT" in result.to_vtt()
@@ -138,12 +131,14 @@ class TestMergeResults:
     """Test transcription result merging."""
 
     def test_single_result(self):
-        results = [{
-            "text": "Hello",
-            "language": "en",
-            "duration": 5.0,
-            "segments": [{"start": 0.0, "end": 5.0, "text": "Hello"}],
-        }]
+        results = [
+            {
+                "text": "Hello",
+                "language": "en",
+                "duration": 5.0,
+                "segments": [{"start": 0.0, "end": 5.0, "text": "Hello"}],
+            }
+        ]
         merged = _merge_transcription_results(results, 5.0)
         assert merged.text == "Hello"
         assert merged.language == "en"
