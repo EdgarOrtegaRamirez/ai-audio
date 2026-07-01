@@ -22,13 +22,17 @@ ai audio transcribe recording.mp3
 
 ```bash
 pip install ai-audio
-
-# With transcription support (OpenAI Whisper)
-pip install 'ai-audio[transcribe]'
-
-# Full install
-pip install 'ai-audio[all]'
 ```
+
+| Install | Command | `speak` (TTS) | `transcribe` (STT) | API Key Needed |
+|---------|---------|:---:|:---:|:---:|
+| **Basic** | `pip install ai-audio` | ✅ | ❌ | No |
+| **Transcribe** | `pip install 'ai-audio[transcribe]'` | ✅ | ✅ | Yes (OpenAI) |
+| **All** | `pip install 'ai-audio[all]'` | ✅ | ✅ | Yes (OpenAI) |
+
+- **Basic** — `speak` uses Edge TTS (free, no API key, 100+ voices)
+- **Transcribe** — adds `transcribe` via OpenAI Whisper API (paid, needs `OPENAI_API_KEY`)
+- **All** — same as transcribe, just explicit
 
 ## Usage
 
