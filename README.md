@@ -28,11 +28,9 @@ pip install ai-audio
 |---------|---------|:---:|:---:|:---:|
 | **Basic** | `pip install ai-audio` | ✅ | ❌ | No |
 | **Transcribe** | `pip install 'ai-audio[transcribe]'` | ✅ | ✅ | Yes (OpenAI) |
-| **All** | `pip install 'ai-audio[all]'` | ✅ | ✅ | Yes (OpenAI) |
 
 - **Basic** — `speak` uses Edge TTS (free, no API key, 100+ voices)
 - **Transcribe** — adds `transcribe` via OpenAI Whisper API (paid, needs `OPENAI_API_KEY`)
-- **All** — same as transcribe, just explicit
 
 ## Usage
 
