@@ -30,7 +30,7 @@ dependencies = [
 
 [project.optional-dependencies]
 transcribe = [
-    "openai>=1.0",
+    "openai>=2.0,<3.0",
     "pydub>=0.25",
 ]
 dev = [
